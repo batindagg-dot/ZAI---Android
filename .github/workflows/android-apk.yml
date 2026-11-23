@@ -1,14 +1,19 @@
 
-name: Build ZAI APK
+name: Build ZAI Android APK
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,15 +24,20 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Accept Android licenses
-        run: yes | sdkmanager --licenses || true
+        run: yes | sdkmanager --licenses
 
       - name: Install Android SDK packages
         run: |
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Extract project
-        run: unzip ZAI-Android-Project-CloudBuild.zip -d extracted
+        run: |
+          mkdir -p extracted
+          unzip -o ZAI-Android-Project-CloudBuild.zip -d extracted
 
       - name: Build APK
         run: |
@@ -39,3 +49,5 @@ jobs:
         with:
           name: ZAI-APK
           path: extracted/ZAI-Android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          
